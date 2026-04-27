@@ -13,8 +13,7 @@ $stmt->execute();
 $bidang = $stmt->get_result()->fetch_assoc();
 if (!$bidang) redirect(SITE_URL . '/admin/bidang.php');
 
-// Hanya admin kelurahan ybs atau superadmin yang boleh nambah anggota
-checkOwnership($bidang['kelurahan_id']);
+// Bidang adalah resource bersama, akses diatur oleh requireAdmin()
 
 $pageTitle = 'Tambah Anggota - ' . $bidang['nama'];
 

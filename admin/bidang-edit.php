@@ -12,7 +12,7 @@ $stmt->execute();
 $bidang = $stmt->get_result()->fetch_assoc();
 if (!$bidang) redirect(SITE_URL . '/admin/bidang.php');
 
-checkOwnership($bidang['kelurahan_id']);
+// Akses diatur oleh requireAdmin() dan isSuperAdmin()
 
 $pageTitle = 'Edit Bidang - ' . $bidang['nama'];
 
