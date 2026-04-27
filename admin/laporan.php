@@ -1,0 +1,128 @@
+<?php
+require_once '../include/config.php';
+require_once '../include/functions.php';
+requireAdmin();
+$pageTitle = 'Manajemen Laporan';
+
+$page = max(1, (int)($_GET['page'] ?? 1));
+$perPage = 15;
+$offset = ($page - 1) * $perPage;
+$kelIdFilter = $_GET['kelurahan'] ?? '';
+$kelId = getKelurahanId();
+
+if (isSuperAdmin()) {
+    $where = $kelIdFilter !== '' ? " WHERE kelurahan_id = " . (int)$kelIdFilter : "";
+} else {
+    $where = " WHERE kelurahan_id = " . (int)$kelId;
+}
+
+$total = $conn->query("SELECT COUNT(*) FROM laporan" . $where)->fetch_row()[0];
+$stmt  = $conn->prepare("SELECT * FROM laporan" . $where . " ORDER BY tgl_upload DESC LIMIT ? OFFSET ?");
+$stmt->bind_param('ii', $perPage, $offset);
+$stmt->execute();
+$list = $stmt->get_result();
+$kels = $conn->query("SELECT id, nama FROM kelurahan ORDER BY nama");
+
+include 'header.php';
+?>
+
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+    <div>
+        <div class="text-[10px] font-bold text-accent uppercase tracking-widest mb-1">Manajemen Konten</div>
+        <h2 class="text-2xl md:text-3xl font-bold text-darkblue_alt">Manajemen Laporan</h2>
+        <p class="text-gray-400 text-sm mt-1">Total <span class="font-bold text-accent"><?= number_format($total) ?></span> laporan</p>
+    </div>
+    <div class="flex items-center gap-3 flex-shrink-0">
+        <?php if (isSuperAdmin()): ?>
+        <form method="GET">
+            <select name="kelurahan" onchange="this.form.submit()"
+                    class="bg-white border border-gray-200 text-darkblue_alt text-sm rounded-xl px-3 py-2.5 focus:outline-none focus:border-accent shadow-sm">
+                <option value="">Semua Kelurahan</option>
+                <option value="0" <?= $kelIdFilter === '0' ? 'selected' : '' ?>>Kecamatan (Pusat)</option>
+                <?php while ($k = $kels->fetch_assoc()): ?>
+                <option value="<?= $k['id'] ?>" <?= $kelIdFilter == $k['id'] ? 'selected' : '' ?>><?= e($k['nama']) ?></option>
+                <?php endwhile; ?>
+            </select>
+        </form>
+        <?php endif; ?>
+        <a href="laporan-add.php" class="flex items-center gap-2 bg-accent hover:bg-darkblue text-white font-bold text-sm px-5 py-2.5 rounded-xl transition-all shadow-lg shadow-accent/20">
+            <i class="fas fa-upload text-xs"></i> Upload Laporan
+        </a>
+    </div>
+</div>
+
+<div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+    <div class="flex items-center gap-3 px-6 py-4 border-b border-gray-50">
+        <div class="w-8 h-8 rounded-lg bg-orange-50 flex items-center justify-center text-orange-500">
+            <i class="fas fa-file-alt text-xs"></i>
+        </div>
+        <h3 class="font-bold text-darkblue_alt text-sm">Daftar Laporan</h3>
+    </div>
+    <?php if ($list->num_rows === 0): ?>
+    <div class="flex flex-col items-center justify-center py-20 text-center">
+        <div class="w-16 h-16 rounded-2xl bg-softgray flex items-center justify-center text-gray-300 mb-4"><i class="fas fa-folder-open text-2xl"></i></div>
+        <p class="text-gray-400 font-medium">Belum ada laporan</p>
+    </div>
+    <?php else: ?>
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="border-b border-gray-50 bg-softgray/50">
+                    <th class="text-left px-6 py-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest w-10">#</th>
+                    <th class="text-left px-4 py-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Judul</th>
+                    <th class="text-left px-4 py-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Tanggal</th>
+                    <th class="text-left px-4 py-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest">File</th>
+                    <th class="text-right px-6 py-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Aksi</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-50">
+                <?php $no = $offset + 1;
+                while ($l = $list->fetch_assoc()):
+                    $ext = strtolower(pathinfo($l['file'] ?? '', PATHINFO_EXTENSION));
+                    $extColors = ['pdf'=>'bg-red-50 text-red-600','xls'=>'bg-emerald-50 text-emerald-700','xlsx'=>'bg-emerald-50 text-emerald-700'];
+                    $badgeClass = $extColors[$ext] ?? 'bg-gray-100 text-gray-500';
+                ?>
+                <tr class="hover:bg-softgray/50 transition-colors group">
+                    <td class="px-6 py-3 text-gray-400 text-xs"><?= $no++ ?></td>
+                    <td class="px-4 py-3">
+                        <div class="font-semibold text-darkblue_alt group-hover:text-accent transition-colors max-w-xs truncate"><?= e($l['judul']) ?></div>
+                        <?php if (!empty($l['deskripsi'])): ?>
+                        <div class="text-xs text-gray-400 mt-0.5"><?= e(truncate($l['deskripsi'], 60)) ?></div>
+                        <?php endif; ?>
+                    </td>
+                    <td class="px-4 py-3 text-xs text-gray-400 whitespace-nowrap"><?= formatTanggal($l['tgl_upload']) ?></td>
+                    <td class="px-4 py-3">
+                        <?php if (!empty($l['file'])): ?>
+                        <span class="inline-flex px-2.5 py-1 rounded-lg <?= $badgeClass ?> text-xs font-bold uppercase"><?= $ext ?: '—' ?></span>
+                        <?php else: ?>
+                        <span class="text-gray-300 text-xs italic">—</span>
+                        <?php endif; ?>
+                    </td>
+                    <td class="px-6 py-3">
+                        <div class="flex items-center justify-end gap-1.5">
+                            <?php if (!empty($l['file'])): ?>
+                            <a href="<?= SITE_URL ?>/uploads/laporan/<?= e($l['file']) ?>" download target="_blank"
+                               class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white flex items-center justify-center transition-all">
+                                <i class="fas fa-download text-xs"></i>
+                            </a>
+                            <?php endif; ?>
+                            <a href="laporan-edit.php?id=<?= $l['id'] ?>"
+                               class="w-8 h-8 rounded-lg bg-blue-50 text-blue-500 hover:bg-blue-500 hover:text-white flex items-center justify-center transition-all">
+                                <i class="fas fa-edit text-xs"></i>
+                            </a>
+                            <a href="laporan-delete.php?id=<?= $l['id'] ?>" data-confirm="Yakin hapus laporan ini?"
+                               class="w-8 h-8 rounded-lg bg-red-50 text-red-400 hover:bg-red-500 hover:text-white flex items-center justify-center transition-all">
+                                <i class="fas fa-trash text-xs"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                <?php endwhile; ?>
+            </tbody>
+        </table>
+    </div>
+    <?php endif; ?>
+</div>
+<div class="mt-6"><?= paginate($total, $page, $perPage, 'laporan.php?') ?></div>
+<div class="h-16 lg:h-0"></div>
+<?php include 'footer.php'; ?>
