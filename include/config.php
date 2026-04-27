@@ -7,7 +7,8 @@
 define('DB_HOST', 'localhost');
 define('DB_USER', 'root');
 define('DB_PASS', '');
-define('DB_NAME', 'if0_41447754_pulomerak');
+define('DB_NAME', 'pulomerakk');
+define('DB_PORT', '3307');
 
 // ── SITE URL ─────────────────────────────────────────────────
 $__p = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
@@ -21,7 +22,7 @@ unset($__p);
 
 
 // ── KONEKSI DATABASE ─────────────────────────────────────────
-$conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+$conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME, DB_PORT);
 if ($conn->connect_error) {
     die('<div style="font-family:sans-serif;padding:40px;text-align:center;">
         <h2 style="color:#c0392b;">Koneksi Database Gagal</h2>

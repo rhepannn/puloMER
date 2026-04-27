@@ -174,6 +174,7 @@ if(isset($conn)) {
                 <a href="<?= defined('SITE_URL') ? SITE_URL : '' ?>/inovasi.php" class="text-darkblue_alt hover:text-accent transition-colors duration-300 <?= $currentPage === 'inovasi' ? 'text-accent border-b-2 border-accent pb-1' : '' ?>">Inovasi</a>
                 <a href="<?= defined('SITE_URL') ? SITE_URL : '' ?>/kegiatan.php" class="text-darkblue_alt hover:text-accent transition-colors duration-300 <?= $currentPage === 'kegiatan' ? 'text-accent border-b-2 border-accent pb-1' : '' ?>">Kegiatan</a>
                 <a href="<?= defined('SITE_URL') ? SITE_URL : '' ?>/berita.php" class="text-darkblue_alt hover:text-accent transition-colors duration-300 <?= in_array($currentPage, ['berita', 'berita-detail']) ? 'text-accent border-b-2 border-accent pb-1' : '' ?>">Berita</a>
+                <a href="<?= defined('SITE_URL') ? SITE_URL : '' ?>/laporan.php" class="text-darkblue_alt hover:text-accent transition-colors duration-300 <?= $currentPage === 'laporan' ? 'text-accent border-b-2 border-accent pb-1' : '' ?>">Laporan</a>
 
                 <!-- Login Button -->
                 <a href="<?= defined('SITE_URL') ? SITE_URL : '' ?>/admin/login.php" class="ml-2 bg-darkblue text-white px-5 py-2 rounded-lg text-sm font-bold hover:bg-darkblue_alt transition-all shadow-md flex items-center gap-2">
@@ -220,6 +221,7 @@ if(isset($conn)) {
                 <a href="<?= defined('SITE_URL') ? SITE_URL : '' ?>/inovasi.php" class="block px-6 py-3 text-darkblue_alt hover:bg-softgray hover:text-accent border-l-4 border-transparent <?= $currentPage === 'inovasi' ? 'border-accent bg-softgray text-accent font-semibold' : '' ?>">Inovasi</a>
                 <a href="<?= defined('SITE_URL') ? SITE_URL : '' ?>/kegiatan.php" class="block px-6 py-3 text-darkblue_alt hover:bg-softgray hover:text-accent border-l-4 border-transparent <?= $currentPage === 'kegiatan' ? 'border-accent bg-softgray text-accent font-semibold' : '' ?>">Kegiatan</a>
                 <a href="<?= defined('SITE_URL') ? SITE_URL : '' ?>/berita.php" class="block px-6 py-3 text-darkblue_alt hover:bg-softgray hover:text-accent border-l-4 border-transparent <?= in_array($currentPage, ['berita', 'berita-detail']) ? 'border-accent bg-softgray text-accent font-semibold' : '' ?>">Berita</a>
+                <a href="<?= defined('SITE_URL') ? SITE_URL : '' ?>/laporan.php" class="block px-6 py-3 text-darkblue_alt hover:bg-softgray hover:text-accent border-l-4 border-transparent <?= $currentPage === 'laporan' ? 'border-accent bg-softgray text-accent font-semibold' : '' ?>">Laporan</a>
             </div>
 
             <!-- Mobile Login Button -->

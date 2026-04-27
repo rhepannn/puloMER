@@ -7,12 +7,13 @@ $pageTitle = 'Tambah Kegiatan';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $judul        = trim($_POST['judul'] ?? '');
-    $tgl_kegiatan = $_POST['tgl_kegiatan'] ?? '';
+    $tgl_kegiatan = $_POST['tgl_kegiatan'] ?? date('Y-m-d');
     $lokasi       = trim($_POST['lokasi'] ?? '');
-    $konten       = trim($_POST['konten'] ?? '');
-    $author_id    = $_SESSION['user_id'];
+    $deskripsi    = trim($_POST['konten'] ?? '');
+    $kategori     = trim($_POST['kategori'] ?? '');
+    $kelId        = isSuperAdmin() ? (int)($_POST['kelurahan_id'] ?? 0) : (int)getKelurahanId();
 
-    if (empty($judul) || empty($tgl_kegiatan) || empty($konten)) {
+    if (empty($judul) || empty($tgl_kegiatan) || empty($deskripsi)) {
         $error = 'Semua field wajib diisi!';
     } else {
         $gambar = '';
@@ -26,8 +27,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         if (empty($error)) {
-            $stmt = $conn->prepare("INSERT INTO kegiatan (judul, tgl_kegiatan, lokasi, konten, gambar, author_id) VALUES (?, ?, ?, ?, ?, ?)");
-            $stmt->bind_param('sssssi', $judul, $tgl_kegiatan, $lokasi, $konten, $gambar, $author_id);
+            $stmt = $conn->prepare("INSERT INTO kegiatan (judul, tgl_kegiatan, lokasi, deskripsi, gambar, kategori, kelurahan_id) VALUES (?, ?, ?, ?, ?, ?, ?)");
+            $stmt->bind_param('ssssssi', $judul, $tgl_kegiatan, $lokasi, $deskripsi, $gambar, $kategori, $kelId);
             if ($stmt->execute()) {
                 setFlash('success', 'Kegiatan berhasil ditambahkan!');
                 redirect(SITE_URL . '/admin/kegiatan.php');
@@ -38,6 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
+$kels = $conn->query("SELECT id, nama FROM kelurahan ORDER BY nama");
 include 'header.php';
 ?>
 
@@ -87,6 +89,31 @@ include 'header.php';
                 <h3 class="text-white font-bold text-sm">Pengaturan</h3>
             </div>
             <div class="p-6 space-y-6">
+                <?php if (isSuperAdmin()): ?>
+                <div>
+                    <label class="block text-[11px] font-bold text-darkblue_alt uppercase tracking-wider mb-2">Tujuan Kelurahan</label>
+                    <select name="kelurahan_id" class="w-full bg-softgray border border-gray-200 text-darkblue_alt rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-accent transition-all font-bold">
+                        <option value="0">Kecamatan (Pusat)</option>
+                        <?php while ($k = $kels->fetch_assoc()): ?>
+                        <option value="<?= $k['id'] ?>" <?= (($_POST['kelurahan_id'] ?? '') == $k['id']) ? 'selected' : '' ?>><?= e($k['nama']) ?></option>
+                        <?php endwhile; ?>
+                    </select>
+                </div>
+                <?php endif; ?>
+
+                <div>
+                    <label class="block text-[11px] font-bold text-darkblue_alt uppercase tracking-wider mb-2">Kategori</label>
+                    <input type="text" name="kategori" list="katList" value="<?= e($_POST['kategori'] ?? '') ?>" placeholder="Contoh: PKK, Posyandu..."
+                           class="w-full bg-softgray border border-gray-200 text-darkblue_alt rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-accent transition-all">
+                    <datalist id="katList">
+                        <option value="PKK">
+                        <option value="Posyandu">
+                        <option value="Kesehatan">
+                        <option value="Pendidikan">
+                        <option value="Sosial">
+                    </datalist>
+                </div>
+
                 <div>
                     <label class="block text-[11px] font-bold text-darkblue_alt uppercase tracking-wider mb-2">Tanggal Kegiatan <span class="text-red-400">*</span></label>
                     <input type="date" name="tgl_kegiatan" required value="<?= e($_POST['tgl_kegiatan'] ?? date('Y-m-d')) ?>"
