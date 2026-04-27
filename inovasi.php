@@ -30,7 +30,7 @@ include 'include/header.php';
 <section class="py-12 bg-softgray">
     <div class="container mx-auto px-4 md:px-6">
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+        <div class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8">
 
             <!-- 1. Urban Farming -->
             <div class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl border border-gray-100 transition-all duration-300 group cursor-pointer scroll-reveal"
