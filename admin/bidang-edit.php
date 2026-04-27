@@ -17,16 +17,17 @@ checkOwnership($bidang['kelurahan_id']);
 $pageTitle = 'Edit Bidang - ' . $bidang['nama'];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $nama      = trim($_POST['nama'] ?? '');
-    $deskripsi = trim($_POST['deskripsi'] ?? '');
-    $no_urut   = (int)($_POST['no_urut'] ?? 0);
-    $ikon      = trim($_POST['ikon'] ?? 'fas fa-users');
+    $nama             = trim($_POST['nama'] ?? '');
+    $deskripsi        = trim($_POST['deskripsi'] ?? '');
+    $urutan           = (int)($_POST['urutan'] ?? 0);
+    $prestasi         = trim($_POST['prestasi'] ?? '');
+    $program_unggulan = trim($_POST['program_unggulan'] ?? '');
 
     if (empty($nama)) {
         $error = 'Nama Bidang/POKJA wajib diisi!';
     } else {
-        $stmt = $conn->prepare("UPDATE bidang SET nama=?, deskripsi=?, ikon=?, no_urut=? WHERE id=?");
-        $stmt->bind_param('sssii', $nama, $deskripsi, $ikon, $no_urut, $id);
+        $stmt = $conn->prepare("UPDATE bidang SET nama=?, deskripsi=?, prestasi=?, program_unggulan=?, urutan=? WHERE id=?");
+        $stmt->bind_param('ssssii', $nama, $deskripsi, $prestasi, $program_unggulan, $urutan, $id);
         
         if ($stmt->execute()) {
             setFlash('success', 'Data bidang berhasil diperbarui!');
@@ -81,15 +82,10 @@ include 'header.php';
                            class="w-full bg-softgray border border-gray-200 text-darkblue_alt rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/10 transition-all">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-darkblue_alt mb-2">Ikon FontAwesome</label>
-                    <div class="relative">
-                        <input type="text" name="ikon" id="ikonInput"
-                               value="<?= e($_POST['ikon'] ?? $bidang['ikon']) ?>"
-                               class="w-full bg-softgray border border-gray-200 text-darkblue_alt rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/10 transition-all">
-                        <div class="absolute right-3 top-1/2 -translate-y-1/2 text-accent">
-                            <i id="ikonPreview" class="<?= e($_POST['ikon'] ?? $bidang['ikon']) ?>"></i>
-                        </div>
-                    </div>
+                    <label class="block text-xs font-bold text-darkblue_alt mb-2">Nomor Urut</label>
+                    <input type="number" name="urutan"
+                           value="<?= e($_POST['urutan'] ?? $bidang['urutan']) ?>"
+                           class="w-full bg-softgray border border-gray-200 text-darkblue_alt rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/10 transition-all">
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-darkblue_alt mb-2">Deskripsi</label>
@@ -97,10 +93,16 @@ include 'header.php';
                               class="w-full bg-softgray border border-gray-200 text-darkblue_alt rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/10 transition-all resize-none"><?= e($_POST['deskripsi'] ?? $bidang['deskripsi']) ?></textarea>
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-darkblue_alt mb-2">Nomor Urut</label>
-                    <input type="number" name="no_urut"
-                           value="<?= e($_POST['no_urut'] ?? $bidang['no_urut']) ?>"
+                    <label class="block text-xs font-bold text-darkblue_alt mb-2">Prestasi / Pencapaian</label>
+                    <input type="text" name="prestasi"
+                           value="<?= e($_POST['prestasi'] ?? $bidang['prestasi']) ?>"
+                           placeholder="Contoh: Juara 1 Lomba PKK Tingkat Kota"
                            class="w-full bg-softgray border border-gray-200 text-darkblue_alt rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/10 transition-all">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-darkblue_alt mb-2">Program Unggulan <span class="text-gray-400 font-normal">(satu per baris)</span></label>
+                    <textarea name="program_unggulan" rows="6"
+                              class="w-full bg-softgray border border-gray-200 text-darkblue_alt rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/10 transition-all resize-none"><?= e($_POST['program_unggulan'] ?? $bidang['program_unggulan']) ?></textarea>
                 </div>
                 <div class="pt-2">
                     <button type="submit"

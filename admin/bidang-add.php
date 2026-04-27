@@ -13,17 +13,28 @@ $pageTitle = 'Tambah Bidang / POKJA';
 $kels = $conn->query("SELECT id, nama FROM kelurahan ORDER BY nama");
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $nama      = trim($_POST['nama'] ?? '');
-    $deskripsi = trim($_POST['deskripsi'] ?? '');
-    $no_urut   = (int)($_POST['no_urut'] ?? 0);
-    $kelId     = (int)($_POST['kelurahan_id'] ?? 0);
-    $ikon      = trim($_POST['ikon'] ?? 'fas fa-users');
+    $nama             = trim($_POST['nama'] ?? '');
+    $deskripsi        = trim($_POST['deskripsi'] ?? '');
+    $urutan           = (int)($_POST['urutan'] ?? 0);
+    $ikon             = trim($_POST['ikon'] ?? 'fas fa-users');
+    $prestasi         = trim($_POST['prestasi'] ?? '');
+    $program_unggulan = trim($_POST['program_unggulan'] ?? '');
+    // Buat slug otomatis dari nama
+    $slug = createSlug($nama);
 
     if (empty($nama)) {
         $error = 'Nama Bidang/POKJA wajib diisi!';
     } else {
-        $stmt = $conn->prepare("INSERT INTO bidang (nama, deskripsi, ikon, no_urut, kelurahan_id) VALUES (?, ?, ?, ?, ?)");
-        $stmt->bind_param('sssii', $nama, $deskripsi, $ikon, $no_urut, $kelId);
+        // Pastikan slug unik
+        $cek = $conn->prepare("SELECT id FROM bidang WHERE slug = ?");
+        $cek->bind_param('s', $slug);
+        $cek->execute();
+        if ($cek->get_result()->num_rows > 0) {
+            $slug = $slug . '-' . time();
+        }
+
+        $stmt = $conn->prepare("INSERT INTO bidang (nama, slug, deskripsi, prestasi, program_unggulan, urutan) VALUES (?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param('sssssi', $nama, $slug, $deskripsi, $prestasi, $program_unggulan, $urutan);
         
         if ($stmt->execute()) {
             setFlash('success', 'Bidang/POKJA berhasil ditambahkan!');
@@ -63,18 +74,6 @@ include 'header.php';
         <h3 class="font-bold text-darkblue_alt text-sm">Form Bidang Baru</h3>
     </div>
     <form method="POST" class="p-6 space-y-5">
-        
-        <div>
-            <label class="block text-xs font-bold text-darkblue_alt mb-2">Ditujukan Untuk <span class="text-red-400">*</span></label>
-            <select name="kelurahan_id" required
-                    class="w-full bg-softgray border border-gray-200 text-darkblue_alt rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/10 transition-all">
-                <option value="0">Kecamatan (Pusat)</option>
-                <?php while ($k = $kels->fetch_assoc()): ?>
-                    <option value="<?= $k['id'] ?>" <?= (($_POST['kelurahan_id'] ?? '') == $k['id']) ? 'selected' : '' ?>><?= e($k['nama']) ?></option>
-                <?php endwhile; ?>
-            </select>
-            <p class="text-[10px] text-gray-400 mt-1.5 ml-1">Pilih apakah bidang ini milik Kecamatan atau salah satu Kelurahan.</p>
-        </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div>
@@ -85,17 +84,11 @@ include 'header.php';
                        class="w-full bg-softgray border border-gray-200 text-darkblue_alt rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/10 transition-all">
             </div>
             <div>
-                <label class="block text-xs font-bold text-darkblue_alt mb-2">Ikon FontAwesome</label>
-                <div class="relative">
-                    <input type="text" name="ikon"
-                           value="<?= e($_POST['ikon'] ?? 'fas fa-users') ?>"
-                           placeholder="Contoh: fas fa-book"
-                           class="w-full bg-softgray border border-gray-200 text-darkblue_alt rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/10 transition-all">
-                    <div class="absolute right-3 top-1/2 -translate-y-1/2 text-accent">
-                        <i id="ikonPreview" class="<?= e($_POST['ikon'] ?? 'fas fa-users') ?>"></i>
-                    </div>
-                </div>
-                <p class="text-[10px] text-gray-400 mt-1.5 ml-1">Gunakan class CSS FontAwesome v5.15.</p>
+                <label class="block text-xs font-bold text-darkblue_alt mb-2">Nomor Urut Tampilan</label>
+                <input type="number" name="urutan"
+                       value="<?= e($_POST['urutan'] ?? '0') ?>"
+                       class="w-full bg-softgray border border-gray-200 text-darkblue_alt rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/10 transition-all">
+                <p class="text-[10px] text-gray-400 mt-1.5 ml-1">Menentukan urutan tampilan di halaman depan.</p>
             </div>
         </div>
 
@@ -107,11 +100,18 @@ include 'header.php';
         </div>
 
         <div>
-            <label class="block text-xs font-bold text-darkblue_alt mb-2">Nomor Urut</label>
-            <input type="number" name="no_urut"
-                   value="<?= e($_POST['no_urut'] ?? '0') ?>"
+            <label class="block text-xs font-bold text-darkblue_alt mb-2">Prestasi / Pencapaian</label>
+            <input type="text" name="prestasi"
+                   value="<?= e($_POST['prestasi'] ?? '') ?>"
+                   placeholder="Contoh: Juara 1 Lomba PKK Tingkat Kota"
                    class="w-full bg-softgray border border-gray-200 text-darkblue_alt rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/10 transition-all">
-            <p class="text-[10px] text-gray-400 mt-1.5 ml-1">Menentukan urutan bidang di halaman depan.</p>
+        </div>
+
+        <div>
+            <label class="block text-xs font-bold text-darkblue_alt mb-2">Program Unggulan <span class="text-gray-400 font-normal">(satu per baris)</span></label>
+            <textarea name="program_unggulan" rows="5"
+                      placeholder="1. Program A&#10;2. Program B"
+                      class="w-full bg-softgray border border-gray-200 text-darkblue_alt rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/10 transition-all resize-none"><?= e($_POST['program_unggulan'] ?? '') ?></textarea>
         </div>
 
         <div class="flex items-center gap-3 pt-4 border-t border-gray-50">

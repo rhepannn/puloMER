@@ -21,7 +21,7 @@ $pageTitle = 'Tambah Anggota - ' . $bidang['nama'];
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nama      = trim($_POST['nama'] ?? '');
     $jabatan   = trim($_POST['jabatan'] ?? '');
-    $no_urut   = (int)($_POST['no_urut'] ?? 0);
+    $urutan    = (int)($_POST['no_urut'] ?? 0);
     $foto      = '';
 
     if (empty($nama) || empty($jabatan)) {
@@ -37,8 +37,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         if (empty($error)) {
-            $stmt = $conn->prepare("INSERT INTO anggota_bidang (bidang_id, nama, jabatan, foto, no_urut) VALUES (?, ?, ?, ?, ?)");
-            $stmt->bind_param('isssi', $bidang_id, $nama, $jabatan, $foto, $no_urut);
+            $stmt = $conn->prepare("INSERT INTO anggota_bidang (bidang_id, nama, jabatan, foto, urutan) VALUES (?, ?, ?, ?, ?)");
+            $stmt->bind_param('isssi', $bidang_id, $nama, $jabatan, $foto, $urutan);
             if ($stmt->execute()) {
                 setFlash('success', 'Anggota berhasil ditambahkan!');
                 redirect(SITE_URL . '/admin/bidang-edit.php?id=' . $bidang_id);
